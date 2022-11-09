@@ -1,34 +1,12 @@
 
 
-; (require [org.httpkit.client :as http])
-
-
- (def urlregex #"https:\/\/.*|http:\/\/.*") ; regex used to match urls (needs to be more robust) 
+(def urlregex #"https:\/\/.*|http:\/\/.*") ; regex used to match urls (needs to be more robust)
 
 
 (defn getUrls
-  "Extract URLs from the file provided as an argument."
+  "Extract URLs from the file provided as an argument, returns a list."
   [filePath]
-  (re-seq urlregex (slurp (first filePath)))) ; The parameter takes a list, so (first ,,,) is needed.
-
-
-(defn tryUrl
-  "Sends an HTTP GET request to the passed argument. If the request is successful, prints true, else false."
-  [url]
-  (let [response? (try
-                    (get url)
-                    "\33[32mvalid.\33[0m"
-                    (catch Throwable e
-                      "\033[91minvalid.\033[0m"))]
-    (println (str "URL: " url " is " response?)))
-  nil)
-
-
-(defn checkUrlList
-  "Attempt a HTTP GET request for each URL in the parameter."
-  [urls]
-  (dorun (pmap tryUrl urls))
-  (System/exit 0))
+  (re-seq urlregex (slurp filePath))) ; The parameter takes a list, so (first ,,,) is needed.
 
 
 (defn handleStartup
@@ -43,19 +21,23 @@
       (do (print (nth startupErrors 1)) false)))) ; or the parameters weren't specified correctly 
 
 
-(defn -main
-  "Start here!"
-  [& args]
-  (if (= true (handleStartup args))
-    (checkUrlList (getUrls args))))
+(defn tryUrl
+ ""
+ [url]
+ (let [response (org.httpkit.client/request {:url url})]
+  (if (nil? (:status @response))
+   (println (str "response status for " url " was nil"))
+   (println (str "response status for " url " was " (:status @response))))))
 
 
-;(defn -main
-;  "Program entry point."
-;  [& args]
-;  (print "getting here?")
-;  (if (= true (handleStartup args))
-;    (checkUrlList (getUrls (first args))))
-;  (System/exit 0))
+(defn checkUrlList
+ "Attempt a HTTP GET request for each URL in the list parameter."
+ [urls]
+ (dorun (map tryUrl urls)))
 
+(if (= true (handleStartup *command-line-args*))
+ (checkUrlList (getUrls *command-line-args*)))
+
+
+	(println "\nend script")
 
