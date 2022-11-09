@@ -6,7 +6,7 @@
 (defn getUrls
   "Extract URLs from the file provided as an argument, returns a list."
   [filePath]
-  (re-seq urlregex (slurp (first filePath)))) ; The parameter takes a list, so (first ,,,) is needed.
+  (re-seq urlregex (slurp filePath))) ; The parameter takes a list, so (first ,,,) is needed.
 
 
 (defn handleStartup
@@ -25,7 +25,7 @@
  ""
  [url]
  (let [response (org.httpkit.client/request {:url url})]
-  (if (nil? (:status response))
+  (if (nil? (:status @response))
    (println (str "response status for " url " was nil"))
    (println (str "response status for " url " was " (:status @response))))))
 
@@ -34,14 +34,7 @@
  "Attempt a HTTP GET request for each URL in the list parameter."
  [urls]
  (dorun (map tryUrl urls)))
-;(dorun (map println urls))
-;(let [resp1 (org.httpkit.client/request {:url "http://www.google.com"})
-		; resp2 (org.httpkit.client/request {:url "hhtp://www.bbc.co.uk"})]
-		; (println "resp1's status: " (:status @resp1))
-		; (println "resp2's status: " (:status @resp2))))
 
-
-	; this if acts like a -main in a normal project
 (if (= true (handleStartup *command-line-args*))
  (checkUrlList (getUrls *command-line-args*)))
 
